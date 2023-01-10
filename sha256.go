@@ -149,7 +149,7 @@ func (d *Digest) Write(p []byte) (nn int, err error) {
 func (d *Digest) Sum(in []byte) []byte {
 	// Make a copy of d0 so that caller can keep writing and summing.
 	d0 := *d
-	hash := d0.checkSum()
+	hash := d0.CheckSum()
 	return append(in, hash[:]...)
 }
 
