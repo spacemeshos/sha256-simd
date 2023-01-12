@@ -18,14 +18,14 @@
 
 package sha256
 
-func blockShaGo(dig *digest, p []byte) {
+func blockShaGo(dig *Digest, p []byte) {
 	panic("blockShaGoc called unexpectedly")
 }
 
 //go:noescape
 func blockArm(h []uint32, message []uint8)
 
-func blockArmGo(dig *digest, p []byte) {
+func blockArmGo(dig *Digest, p []byte) {
 
 	h := []uint32{dig.h[0], dig.h[1], dig.h[2], dig.h[3], dig.h[4], dig.h[5], dig.h[6], dig.h[7]}
 
