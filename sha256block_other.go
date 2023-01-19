@@ -18,11 +18,11 @@
 
 package sha256
 
-func blockShaGo(dig *digest, p []byte) {
+func blockShaGo(dig *Digest, p []byte) {
 	panic("blockShaGo called unexpectedly")
 
 }
 
-func blockArmGo(dig *digest, p []byte) {
+func blockArmGo(dig *Digest, p []byte) {
 	panic("blockArmGo called unexpectedly")
 }
