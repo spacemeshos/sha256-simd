@@ -2236,6 +2236,19 @@ func TestGolden(t *testing.T) {
 		}
 	}
 
+	if cpuid.CPU.Supports(cpuid.SHA, cpuid.SSSE3, cpuid.SSE4) {
+		blockfunc = blockfuncSha
+		for _, g := range golden {
+			var hasher = New().(*Digest)
+			hasher.Write([]byte(g.in))
+			var sum [Size]byte
+			hasher.CheckSumInto(&sum)
+			if sum != g.out {
+				t.Fatalf("SHA: Sum256 function: sha256(%s) = %s want %s", g.in, hex.EncodeToString(sum[:]), hex.EncodeToString(g.out[:]))
+			}
+		}
+	}
+
 	if hasArmSha2() {
 		blockfunc = blockfuncArm
 		for _, g := range golden {
@@ -2274,6 +2287,19 @@ func benchmarkSize(b *testing.B, size int) {
 	}
 }
 
+func benchmarkChecksumInto(b *testing.B, size int) {
+	var bench = New().(*Digest)
+	var buf = make([]byte, size)
+	b.SetBytes(int64(size))
+	var sum [Size]byte
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bench.Reset()
+		bench.Write(buf[:size])
+		bench.CheckSumInto(&sum)
+	}
+}
+
 func BenchmarkHash(b *testing.B) {
 	algos := []struct {
 		n string
@@ -2290,6 +2316,7 @@ func BenchmarkHash(b *testing.B) {
 		s int
 	}{
 		{"8Bytes", benchmarkSize, 1 << 3},
+		{"32Bytes", benchmarkSize, 1 << 5},
 		{"1K", benchmarkSize, 1 << 10},
 		{"8K", benchmarkSize, 1 << 13},
 		{"1M", benchmarkSize, 1 << 20},
@@ -2307,5 +2334,29 @@ func BenchmarkHash(b *testing.B) {
 			}
 			blockfunc = blockfuncSaved
 		}
+	}
+}
+
+func BenchmarkChecksumInto(b *testing.B) {
+	if !hasSHAExtensions() {
+		b.Skip("Skipping as SHA extensions are not available")
+	}
+
+	sizes := []struct {
+		n string
+		f func(*testing.B, int)
+		s int
+	}{
+		{"8Bytes", benchmarkChecksumInto, 1 << 3},
+		{"32Bytes", benchmarkChecksumInto, 1 << 5},
+		{"1K", benchmarkChecksumInto, 1 << 10},
+		{"8K", benchmarkChecksumInto, 1 << 13},
+		{"1M", benchmarkChecksumInto, 1 << 20},
+		{"5M", benchmarkChecksumInto, 5 << 20},
+		{"10M", benchmarkChecksumInto, 5 << 21},
+	}
+
+	for _, y := range sizes {
+		b.Run(y.n, func(b *testing.B) { y.f(b, y.s) })
 	}
 }

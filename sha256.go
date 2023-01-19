@@ -155,6 +155,11 @@ func (d *Digest) Sum(in []byte) []byte {
 
 // Intermediate checksum function
 func (d *Digest) CheckSum() (digest [Size]byte) {
+	d.CheckSumInto(&digest)
+	return
+}
+
+func (d *Digest) CheckSumInto(digest *[Size]byte) {
 	n := d.nx
 
 	var k [64]byte
@@ -267,8 +272,6 @@ func (d *Digest) CheckSum() (digest [Size]byte) {
 		const i = 7
 		binary.BigEndian.PutUint32(digest[i*4:i*4+4], d.h[i])
 	}
-
-	return
 }
 
 func block(dig *Digest, p []byte) {
