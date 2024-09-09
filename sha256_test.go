@@ -2369,7 +2369,7 @@ func TestGoldenMarshal(t *testing.T) {
 		{"256", New, golden256},
 	}
 
-	if _, ok := New().(*digest); !ok {
+	if _, ok := New().(*Digest); !ok {
 		t.Skip("no hash extensions, skipping stdlib testing")
 	}
 	for _, tt := range tests {

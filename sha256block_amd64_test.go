@@ -1,5 +1,4 @@
 //go:build !noasm && !appengine && gc
-// +build !noasm,!appengine,gc
 
 package sha256
 

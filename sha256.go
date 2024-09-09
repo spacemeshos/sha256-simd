@@ -41,8 +41,8 @@ const (
 	init7 = 0x5BE0CD19
 )
 
-// digest represents the partial evaluation of a checksum.
-type digest struct {
+// Digest represents the partial evaluation of a checksum.
+type Digest struct {
 	h   [8]uint32
 	x   [chunk]byte
 	nx  int
@@ -50,7 +50,7 @@ type digest struct {
 }
 
 // Reset digest back to default
-func (d *digest) Reset() {
+func (d *Digest) Reset() {
 	d.h[0] = init0
 	d.h[1] = init1
 	d.h[2] = init2
@@ -91,28 +91,28 @@ func New() hash.Hash {
 		return sha256.New()
 	}
 
-	d := new(digest)
+	d := new(Digest)
 	d.Reset()
 	return d
 }
 
 // Sum256 - single caller sha256 helper
 func Sum256(data []byte) (result [Size]byte) {
-	var d digest
+	var d Digest
 	d.Reset()
 	d.Write(data)
-	result = d.checkSum()
+	result = d.CheckSum()
 	return
 }
 
 // Return size of checksum
-func (d *digest) Size() int { return Size }
+func (d *Digest) Size() int { return Size }
 
 // Return blocksize of checksum
-func (d *digest) BlockSize() int { return BlockSize }
+func (d *Digest) BlockSize() int { return BlockSize }
 
 // Write to digest
-func (d *digest) Write(p []byte) (nn int, err error) {
+func (d *Digest) Write(p []byte) (nn int, err error) {
 	nn = len(p)
 	d.len += uint64(nn)
 	if d.nx > 0 {
@@ -136,15 +136,15 @@ func (d *digest) Write(p []byte) (nn int, err error) {
 }
 
 // Return sha256 sum in bytes
-func (d *digest) Sum(in []byte) []byte {
+func (d *Digest) Sum(in []byte) []byte {
 	// Make a copy of d0 so that caller can keep writing and summing.
 	d0 := *d
-	hash := d0.checkSum()
+	hash := d0.CheckSum()
 	return append(in, hash[:]...)
 }
 
 // Intermediate checksum function
-func (d *digest) checkSum() (digest [Size]byte) {
+func (d *Digest) CheckSum() (digest [Size]byte) {
 	n := d.nx
 
 	var k [64]byte
@@ -261,7 +261,7 @@ func (d *digest) checkSum() (digest [Size]byte) {
 	return
 }
 
-func block(dig *digest, p []byte) {
+func block(dig *Digest, p []byte) {
 	if blockfunc == blockfuncIntelSha {
 		blockIntelShaGo(dig, p)
 	} else if blockfunc == blockfuncArmSha2 {
@@ -271,7 +271,7 @@ func block(dig *digest, p []byte) {
 	}
 }
 
-func blockGeneric(dig *digest, p []byte) {
+func blockGeneric(dig *Digest, p []byte) {
 	var w [64]uint32
 	h0, h1, h2, h3, h4, h5, h6, h7 := dig.h[0], dig.h[1], dig.h[2], dig.h[3], dig.h[4], dig.h[5], dig.h[6], dig.h[7]
 	for len(p) >= chunk {
@@ -393,7 +393,7 @@ const (
 	marshaledSize = len(magic256) + 8*4 + chunk + 8
 )
 
-func (d *digest) MarshalBinary() ([]byte, error) {
+func (d *Digest) MarshalBinary() ([]byte, error) {
 	b := make([]byte, 0, marshaledSize)
 	b = append(b, magic256...)
 	b = appendUint32(b, d.h[0])
@@ -410,7 +410,7 @@ func (d *digest) MarshalBinary() ([]byte, error) {
 	return b, nil
 }
 
-func (d *digest) UnmarshalBinary(b []byte) error {
+func (d *Digest) UnmarshalBinary(b []byte) error {
 	if len(b) < len(magic256) || string(b[:len(magic256)]) != magic256 {
 		return errors.New("crypto/sha256: invalid hash state identifier")
 	}
